@@ -1,0 +1,40 @@
+[Telegram]
+telegram_bot_token = 
+
+# ignore section if not a TTN user
+[TTN]
+# e.g. "hiveeyes" (owned by thias)
+ttn_app_id         = 
+ttn_key            = 
+ttn_mqtt_address   = eu.thethings.network:1883
+# real device name is followed by a number
+ttn_device_base    = thias-hive
+# for CayenneLPP encoded data:
+ttn_weight_var     = analog_in_1
+ttn_battery_var    = analog_in_3
+
+[Hiveeyes]
+# if no user and pw configured subscription to hiveeyes/# is possible
+hiveeyes_mqtt_user  = 
+hiveeyes_mqtt_pw    = 
+hiveeyes_address    = swarm.hiveeyes.org
+hiveeyes_port       = 1883
+# data topic of your device
+hiveeyes_data_topic =  
+hiveeyes_data_topic_json_valid  = { '__json__', 'data.json' } 
+# topic to send events to
+hiveeyes_events_topic       = hiveeyes/thias/all/hives/event.json
+hiveeyes_weight_attr_valid  = { 'weight1', 'weight', 'Weight', 'Weight Total', 'Gewicht' }
+hiveeyes_battery_attr_valid = { 'vcc', 'VCC', 'voltage_level', 'Voltage', 'Spannung' }
+
+[Grafana]
+grafana_dashboard_base_url       = https://swarm.hiveeyes.org/grafana/render/d-solo/763KRx7mk/freiland-potsdam-thias-lora-multi-hive?orgId=2
+grafana_dashboard_today_url      = &from=now%2Fd&to=now%2Fd&panelId=5&var-HIVE=thias_hive1_up_sensors&var-STATION=Potsdam&width=1080&height=700&tz=UTC%2B02%3A00
+grafana_dashboard_todaytotal_url = &from=now%2Fd&to=now%2Fd&panelId=11&var-HIVE=thias_hive1_up_sensors&var-STATION=Potsdam&width=400&height=300&tz=UTC%2B02%3A00
+grafana_dashboard_yesterday_url  = &from=now-1d%2Fd&to=now-1d%2Fd&panelId=5&var-HIVE=thias_hive1_up_sensors&width=1080&height=700&tz=UTC%2B02%3A00
+grafana_dashboard_7days_url      = &from=now-7d&to=now&var-HIVE=thias_hive1_up_sensors&panelId=5&width=1080&height=700&tz=UTC%2B02%3A00
+
+[Other]
+timezone  = Europe/Berlin
+latitude  = 52 
+longitude = 13

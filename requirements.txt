@@ -1,0 +1,5 @@
+telegram
+python-telegram-bot
+ttn
+python-dateutil
+
