@@ -1,7 +1,7 @@
 # telegram-beebot
 A service making hive data and event submission available for a Telegram bot instance
 
-## Setting up a Telegam Bot instance: see here
+## Setting up a Telegam Bot instance: [see here](https://core.telegram.org/bots#6-botfather)
 
 ## Functionality:
 * Hiveeyes MQTT subscription is currently only possible to single topics
