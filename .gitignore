@@ -108,3 +108,6 @@ config
 
 # data files
 weight*
+
+# backup files
+*~
