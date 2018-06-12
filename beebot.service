@@ -1,0 +1,17 @@
+[Unit]
+Description=Telegram BeeBot Service
+After=multi-user.target network-online.target
+
+[Service]
+SyslogIdentifier=Telegram BeeBot
+Type=simple
+User=beekeeper
+WorkingDirectory=/home/beekeeper/telegram-beebot
+ExecStart=/home/beekeeper/telegram-beebot/telegram_beebot.py
+StandardOutput=syslog
+StandardError=syslog
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

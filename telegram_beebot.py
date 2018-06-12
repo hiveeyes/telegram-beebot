@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3 -u
 
 # pip3 install -r requirements.txt
 # to install requireed packages
