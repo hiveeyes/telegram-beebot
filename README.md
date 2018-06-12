@@ -24,3 +24,10 @@ A service making hive data and event submission available for a Telegram bot ins
 ## ToDo:
 * For beekeepers observing multiple hives extend the output dynamically depending on the number of hives recognized through the MQTT subscription.
 * include graphic of daily weight development into daily summary
+
+## Run as systemd service
+* `cp beebot.service to /lib/systemd/system/beebot.service`
+* adapt paths inside file to your environment
+* `systemctl daemon-reload`
+* `systemctl start beebot.service`
+* find logs in /var/log/syslog
