@@ -129,11 +129,12 @@ def print_daily(bot, job):
 
     bot.send_message(chat_id=job.context, text=message, parse_mode='Markdown')
 
-    image_url = grafana_dashboard_base_url + \
-                grafana_dashboard_today_url + \
-                '&dummy=' + str(randint(0, 10000000))
+    if grafana_dashboard_today_url:
+        image_url = grafana_dashboard_base_url + \
+                    grafana_dashboard_today_url + \
+                    '&dummy=' + str(randint(0, 10000000))
 
-    bot.send_photo(chat_id=job.context, photo=image_url)
+        bot.send_photo(chat_id=job.context, photo=image_url)
 
 def enable_daily(bot,update,job_queue,args):
     global sunset_today
@@ -226,37 +227,49 @@ dispatcher.add_handler(batteries_handler)
 
 # pull graphics from Grafana funtions
 def today1(bot, update):
-    image_url = grafana_dashboard_base_url + \
-                grafana_dashboard_today_url + \
-                '&dummy=' + str(randint(0, 10000000))
-    bot.send_photo(chat_id=update.message.chat_id, photo=image_url)
-    
+    if grafana_dashboard_today_url:
+        image_url = grafana_dashboard_base_url + \
+                    grafana_dashboard_today_url + \
+                    '&dummy=' + str(randint(0, 10000000))
+        bot.send_photo(chat_id=update.message.chat_id, photo=image_url)
+    else:
+        bot.send_message(chat_id=update.message.chat_id, text='Graphic URL not configured', parse_mode='Markdown')
+
 today1_handler = CommandHandler('today1', today1, pass_args=False)
 dispatcher.add_handler(today1_handler)
 
 def todaytotal1(bot, update):
-    image_url = grafana_dashboard_base_url + \
-                grafana_dashboard_totaytotal_url + \
-                '&dummy=' + str(randint(0, 10000000))
-    bot.send_photo(chat_id=update.message.chat_id, photo=image_url)
+    if grafana_dashboard_totaytotal_url:
+        image_url = grafana_dashboard_base_url + \
+                    grafana_dashboard_totaytotal_url + \
+                    '&dummy=' + str(randint(0, 10000000))
+        bot.send_photo(chat_id=update.message.chat_id, photo=image_url)
+    else:
+        bot.send_message(chat_id=update.message.chat_id, text='Graphic URL not configured', parse_mode='Markdown')
 
 todaytotal1_handler = CommandHandler('todaytotal1', todaytotal1, pass_args=False)
 dispatcher.add_handler(todaytotal1_handler)
 
 def yesterday1(bot, update):
-    image_url = grafana_dashboard_base_url + \
-                grafana_dashboard_yesterday_url + \
-                '&dummy=' + str(randint(0, 10000000))
-    bot.send_photo(chat_id=update.message.chat_id, photo=image_url)
+    if grafana_dashboard_yesterday_url:
+        image_url = grafana_dashboard_base_url + \
+                    grafana_dashboard_yesterday_url + \
+                    '&dummy=' + str(randint(0, 10000000))
+        bot.send_photo(chat_id=update.message.chat_id, photo=image_url)
+    else:
+        bot.send_message(chat_id=update.message.chat_id, text='Graphic URL not configured', parse_mode='Markdown')
 
 yesterday1_handler = CommandHandler('yesterday1', yesterday1, pass_args=False)
 dispatcher.add_handler(yesterday1_handler)
 
 def sevendays1(bot, update):
-    image_url = grafana_dashboard_base_url + \
-                grafana_dashboard_7days_url + \
-                '&dummy=' + str(randint(0, 10000000))
-    bot.send_photo(chat_id=update.message.chat_id, photo=image_url)
+    if grafana_dashboard_7days_url:
+        image_url = grafana_dashboard_base_url + \
+                    grafana_dashboard_7days_url + \
+                    '&dummy=' + str(randint(0, 10000000))
+        bot.send_photo(chat_id=update.message.chat_id, photo=image_url)
+    else:
+        bot.send_message(chat_id=update.message.chat_id, text='Graphic URL not configured', parse_mode='Markdown')
 
 sevendays1_handler = CommandHandler('sevendays1', sevendays1, pass_args=False)
 dispatcher.add_handler(sevendays1_handler)
