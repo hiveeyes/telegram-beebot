@@ -94,10 +94,10 @@ def print_daily(bot, job):
     global sunset_today
     global weight_1
     global custom_schedule
-    
+
     get_sunset_time()
     time_update_daily = datetime.time(sunset_today['hr'],sunset_today['min'])
-    
+
     filename = 'weight_1_yesterday.txt'
     if os.path.exists(filename) and os.path.getsize(filename) > 0:
         f = open(filename,'r+')
@@ -118,19 +118,27 @@ def print_daily(bot, job):
     message = '*Daily summary*\nWeight Hive 1 : `' + str('{0:05.2f}'.format(weight_1)) + 'kg`  ( `' + \
               str('{0:+.0f}'.format(weight_1_dailydiff * 1000)) + 'g` )\n' + \
               'Sunset at ' + str(sunset_today['hr']) + ':' + str(sunset_today['min'])
+
     if not custom_schedule:
         for jobs in job.job_queue.get_jobs_by_name('daily_summary'):
             job.schedule_removal()
+
         print('update daily job to sunset time')
         job.job_queue.run_daily(print_daily, time_update_daily, context=job.context, name = 'daily_summary')
         message = message + ' (updated)'
+
     bot.send_message(chat_id=job.context, text=message, parse_mode='Markdown')
-    
-    
+
+    image_url = grafana_dashboard_base_url + \
+                grafana_dashboard_today_url + \
+                '&dummy=' + str(randint(0, 10000000))
+
+    bot.send_photo(chat_id=job.context, photo=image_url)
+
 def enable_daily(bot,update,job_queue,args):
     global sunset_today
     global custom_schedule
-    
+
     get_sunset_time()
 
     if len(args) == 2:
@@ -143,11 +151,13 @@ def enable_daily(bot,update,job_queue,args):
         message = 'Setting timer with todays sunset time for summary at '+ str(sunset_today['hr']) + ':' + str(sunset_today['min']) + \
                   '. Give hour and minute for another time, e.g. /enable_daily 20 15'
 
-    bot.send_message(chat_id=update.message.chat_id,text=message)
     for job in job_queue.get_jobs_by_name('daily_summary'):
         job.schedule_removal()
+
     print('add daily job')    
     job_queue.run_daily(print_daily, time_update_daily, context=update.message.chat_id, name = 'daily_summary')
+
+    bot.send_message(chat_id=update.message.chat_id,text=message)
 
 enable_daily_handler = CommandHandler('enable_daily', enable_daily, pass_job_queue=True, pass_args=True)
 dispatcher.add_handler(enable_daily_handler)
@@ -173,7 +183,7 @@ def sleep(bot, update, args):
         ttn_client.send(device, payload, port=1, conf=True)
     else:
         message = 'wrong number of arguments. Use first number for device and second for sleep duration in minutes, eg. /sleep 2 10'
-        
+
     bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown')
 
 sleep_handler = CommandHandler('sleep', sleep, pass_args=True)
@@ -229,7 +239,7 @@ def todaytotal1(bot, update):
                 grafana_dashboard_totaytotal_url + \
                 '&dummy=' + str(randint(0, 10000000))
     bot.send_photo(chat_id=update.message.chat_id, photo=image_url)
-    
+
 todaytotal1_handler = CommandHandler('todaytotal1', todaytotal1, pass_args=False)
 dispatcher.add_handler(todaytotal1_handler)
 
@@ -254,7 +264,7 @@ dispatcher.add_handler(sevendays1_handler)
 # TTN MQTT callbacks
 def connect_callback(res, client):
     print('Connected to ' + ttn_mqtt_address + ' with result code:', res)
-    
+
 def uplink_callback(msg, client):
     global ttn_device_base
     device_num = msg.dev_id.split(ttn_device_base)[1]
@@ -266,7 +276,7 @@ def downlink_callback(mid, client):
 # Hiveeyes MQTT callbacks
 def on_connect(hiveeyes_client, userdata, flags, rc):
     print('Connected to ' + hiveeyes_address + ':' + str(hiveeyes_port) + ' with result code ' + str(rc))
-    
+
 def on_message(hiveeyes_client, userdata, msg):
     global weight_1
     global battery_1
@@ -305,7 +315,7 @@ def on_message(hiveeyes_client, userdata, msg):
     #    weight[device]    = weight_1
     #    battery[device]   = battery_1
     #    time_data[device] = time_data_1
-                                            
+
 def on_log(client, userdata, level, buf):
     print('log: ',buf)
 
@@ -314,7 +324,7 @@ def on_subscribe(client, userdata, mid, granted_qos):
 
 def on_publish(client,userdata,result):
     print('event data published')
-        
+
 # TTN MQTT init
 if ttn_app_id and ttn_key and ttn_mqtt_address:
     ttn_client = ttn_mqtt(ttn_app_id, ttn_key, mqtt_address=ttn_mqtt_address)
