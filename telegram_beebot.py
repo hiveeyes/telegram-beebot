@@ -316,7 +316,7 @@ def on_message(hiveeyes_client, userdata, msg):
             weight_1 = sensor_value
         if port == '3':
             battery_1 = sensor_value
-        print(msg.topic + ' : ' + str(sensor_value))
+#        print(msg.topic + ' : ' + str(sensor_value))
     elif topic_last in hiveeyes_data_topic_json_valid:
         # here, expect JSON object
         payload = json.loads(msg.payload.decode('utf-8'))
@@ -327,14 +327,14 @@ def on_message(hiveeyes_client, userdata, msg):
                     weight_1 = value / 1000
                 else:
                     weight_1 = value
-                print(msg.topic + ' ' + attr + ': ' + str(weight_1))
+#                print(msg.topic + ' ' + attr + ': ' + str(weight_1))
             elif attr in hiveeyes_battery_attr_valid:
                 # convert [mV] to [V]
                 if value >= 1000:
                     battery_1 = value / 1000
                 else:
                     battery_1 = value
-                print(msg.topic + ' ' + attr + ': ' + str(battery_1))
+#                print(msg.topic + ' ' + attr + ': ' + str(battery_1))
 
     # ToDo: Handle multiple devices per MQTT Topic -> replace weight_1 with weight[device]
     #    weight[device]    = weight_1
