@@ -61,7 +61,6 @@ coords = {'longitude' : config.getint('Other', 'longitude'), 'latitude' : config
 weight    = {}
 battery   = {}
 time_data = {}
-sunset_today = {}
 
 weight_1 = 0.0
 time_data_1 = datetime.datetime.now().strftime('%d.%m. %H:%M')
@@ -79,24 +78,21 @@ dispatcher = updater.dispatcher
 
 updater.start_polling()
 
+myjob_queue = updater.job_queue
+
 def get_sunset_time():
     global sunset_today
     sun = Sun()
     sunset = sun.getSunsetTime( coords )
     sunset_time = str(sunset['hr']) + ':' + str(int(sunset['min'])) + ' UTC'
     sunset_time_local = parser.parse(sunset_time).astimezone(timezone)
-    sunset_time_local_hr  = int(sunset_time_local.strftime('%H'))
-    sunset_time_local_min = int(sunset_time_local.strftime('%M'))
-    sunset_today = { 'hr' : sunset_time_local_hr , 'min' : sunset_time_local_min }
+    sunset_today = { 'hr' : int(sunset_time_local.strftime('%H')), 'min' : int(sunset_time_local.strftime('%M')) }
     return sunset_today
 
 def print_daily(bot, job):
-    global sunset_today
     global weight_1
     global custom_schedule
-
-    get_sunset_time()
-    time_update_daily = datetime.time(sunset_today['hr'],sunset_today['min'])
+    global time_update_daily_today
 
     filename = 'weight_1_yesterday.txt'
     if os.path.exists(filename) and os.path.getsize(filename) > 0:
@@ -117,47 +113,63 @@ def print_daily(bot, job):
 
     message = '*Daily summary*\nWeight Hive 1 : `' + str('{0:05.2f}'.format(weight_1)) + 'kg`  ( `' + \
               str('{0:+.0f}'.format(weight_1_dailydiff * 1000)) + 'g` )\n' + \
-              'Sunset at ' + str(sunset_today['hr']) + ':' + str(sunset_today['min'])
+              'Sunset at ' + time_update_daily_today.strftime("%H:%M")
 
+    # update sunset schedulder
     if not custom_schedule:
-        for jobs in job.job_queue.get_jobs_by_name('daily_summary'):
-            job.schedule_removal()
+        time_update_daily_yesterday = time_update_daily_today
+        get_sunset_time()
+        time_update_daily_today = datetime.time(sunset_today['hr'],sunset_today['min'])
 
-        print('update daily job to sunset time')
-        job.job_queue.run_daily(print_daily, time_update_daily, context=job.context, name = 'daily_summary')
-        message = message + ' (updated)'
+        if ( time_update_daily_today != time_update_daily_yesterday ):
+            for oldjob in job.job_queue.get_jobs_by_name('daily_summary'):
+                oldjob.schedule_removal()
+                if oldjob.removed:
+                    print('old job ' + str(oldjob) + ' scheduled for removal')
 
-    bot.send_message(chat_id=job.context, text=message, parse_mode='Markdown')
+            job_daily = job.job_queue.run_daily(print_daily, time_update_daily_today, context=job.context, name = 'daily_summary')
+            print('daily job at sunset added to schedulder')
+            message = message + ' (updated)'
 
-    if grafana_dashboard_today_url:
-        image_url = grafana_dashboard_base_url + \
-                    grafana_dashboard_today_url + \
-                    '&dummy=' + str(randint(0, 10000000))
+        if ( time_update_daily_today > time_update_daily_yesterday ):
+            silent_update = True
+            print('silent schedulder update')
+        else:
+            silent_update = False
+    else:
+        silent_update = False
 
-        bot.send_photo(chat_id=job.context, photo=image_url)
+    if not silent_update:
+        bot.send_message(chat_id=job.context, text=message, parse_mode='Markdown')
+        if grafana_dashboard_today_url:
+            image_url = grafana_dashboard_base_url + \
+                        grafana_dashboard_today_url + \
+                        '&dummy=' + str(randint(0, 10000000))
+            bot.send_photo(chat_id=job.context, photo=image_url)
 
 def enable_daily(bot,update,job_queue,args):
-    global sunset_today
     global custom_schedule
+    global time_update_daily_today
 
     get_sunset_time()
 
     if len(args) == 2:
         custom_schedule = True
-        time_update_daily = datetime.time(int(args[0]),int(args[1]))
-        message = 'Setting a daily timer for summary at ' + time_update_daily.strftime('%H:%M')
+        time_update_daily_today = datetime.time(int(args[0]),int(args[1]))
+        message = 'Setting a daily timer for summary at ' + time_update_daily_today.strftime('%H:%M')
     else:
         custom_schedule = False
-        time_update_daily = datetime.time(sunset_today['hr'],sunset_today['min'])
-        message = 'Setting timer with todays sunset time for summary at '+ str(sunset_today['hr']) + ':' + str(sunset_today['min']) + \
+        time_update_daily_today = datetime.time(sunset_today['hr'],sunset_today['min'])
+        message = 'Setting timer with todays sunset time for summary at '+ time_update_daily_today.strftime("%H:%M") + \
                   '. Give hour and minute for another time, e.g. /enable_daily 20 15'
 
-    for job in job_queue.get_jobs_by_name('daily_summary'):
-        job.schedule_removal()
+    for oldjob in job_queue.get_jobs_by_name('daily_summary'):
+        oldjob.schedule_removal()
+        if oldjob.removed:
+            print('old job ' + str(oldjob) + ' scheduled for removal')
 
-    print('add daily job')    
-    job_queue.run_daily(print_daily, time_update_daily, context=update.message.chat_id, name = 'daily_summary')
-
+    job_daily = myjob_queue.run_daily(print_daily, time_update_daily_today, context=update.message.chat_id, name = 'daily_summary')
+    print('daily job added to schedulder')
     bot.send_message(chat_id=update.message.chat_id,text=message)
 
 enable_daily_handler = CommandHandler('enable_daily', enable_daily, pass_job_queue=True, pass_args=True)
